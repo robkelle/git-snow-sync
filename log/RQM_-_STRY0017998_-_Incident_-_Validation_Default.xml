@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?><unload unload_date="2017-12-15 17:53:43"><sys_remote_update_set><application display_value="Mobile Medical Equipment">3d8922a01378aa00b38973076144b0bc</application><application_name>Mobile Medical Equipment</application_name><application_scope>x_ahho_movable_med</application_scope><application_version>3.0.6</application_version><collisions/><commit_date/><deleted/><description/><inserted/><name>RQM - STRY0017998 - Incident - Validation Default</name><origin_sys_id/><release_date/><remote_sys_id>5c224623130e87c0d80074c66144b001</remote_sys_id><state>loaded</state><summary/><sys_class_name>sys_remote_update_set</sys_class_name><sys_created_by>rwKeller</sys_created_by><sys_created_on>2017-12-15 17:53:43</sys_created_on><sys_id>d9fb1c79130f0380cb92b7a66144b06a</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rwKeller</sys_updated_by><sys_updated_on>2017-12-15 17:53:43</sys_updated_on><update_set/><update_source/><updated/></sys_remote_update_set><sys_update_xml><action>INSERT_OR_UPDATE</action><application display_value="Mobile Medical Equipment">3d8922a01378aa00b38973076144b0bc</application><category>customer</category><comments/><name>sp_widget_4f8086aa13c2ba40d80074c66144b01e</name><payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_widget"&gt;&lt;sp_widget action="INSERT_OR_UPDATE"&gt;&lt;client_script&gt;&lt;![CDATA[function($scope, spUtil, cabrillo, $http, $window, urlUtils) {
+
+    var c = this;
+    c.isNative = cabrillo.isNative();
+
+    c.manualScan = typeof c.data.manualBarcode != 'undefined' &amp;&amp; c.data.manualBarcode != '';
+    $scope.company = {
+        displayValue: c.data.customer,
+        value: c.data.customer_id,
+        name: 'company'
+    };
+    $scope.department = {
+        displayValue: c.data.location,
+        value: c.data.location_id,
+        name: 'department'
+    };
+
+    $scope.room = {
+        displayValue: c.data.room,
+        value: c.data.room_id,
+        name: 'room'
+    };
+    c.display = function() {
+        c.data.isLoading = true;
+        var barcode = c.data.manualBarcode || c.data.barcode;
+        var query = encodeURIComponent("company.name=" + c.data.company + "u_ceid.u_ceid=" + barcode);
+        var instance = c.data.instance;
+        console.log(query);
+        c.server.update().then(function(data) {
+            c.data.barcode = null;
+            c.data.manualBarcode = null;
+            c.data.isLoading = false;
+            if (c.data.scan_status == 'failure') {
+                var audio = new Audio("/sys_attachment.do?sys_id=b1e6ddbf133bb200d80074c66144b008");
+                audio.play();
+                navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate;
+                c.vibrateSuccess = navigator.vibrate(1000);
+
+            }
+
+        });
+    };
+    c.getBarcode = function() {
+        cabrillo.camera.getBarcode().then(function(value) {
+            c.data.barcode = value;
+            c.display();
+            if (c.keepScanning) {
+                c.getBarcode();
+            }
+        });
+    };
+    c.getLocationBarcode = function() {
+        cabrillo.camera.getBarcode().then(function(value) {
+            c.data.location_barcode = value;
+            c.setLocation();
+        });
+    };
+    c.toggleLocation = function() {
+        if (c.data.scan_location_barcode == 'no') {
+            clearValues();
+        } else {
+            c.data.customer_found = null;
+        }
+    };
+    clearValues = function() {
+        console.log('Clearing values');
+        c.data.customer_found = false;
+        c.data.location_barcode = '';
+        $scope.company = {
+            displayValue: '',
+            value: '',
+            name: 'company'
+        };
+        $scope.department = {
+            displayValue: '',
+            value: '',
+            name: 'department'
+        };
+        $scope.room = {
+            displayValue: '',
+            value: '',
+            name: 'room'
+        };
+    };
+    c.setLocation = function() {
+
+        c.server.update().then(function(data) {
+            c.data.customer = data.customer;
+            c.data.room = data.room;
+            c.data.location = data.location;
+            //Adding field values and listeners
+            $scope.company = {
+                displayValue: c.data.customer,
+                value: c.data.customer_id,
+                name: 'company'
+            };
+            $scope.department = {
+                displayValue: c.data.location,
+                value: c.data.location_id,
+                name: 'department'
+            };
+            $scope.room = {
+                displayValue: c.data.room,
+                value: c.data.room_id,
+                name: 'room'
+            };
+            if (c.data.customer_found == false) {
+                clearValues();
+            }
+
+        });
+
+    };
+
+    $scope.$on("field.change", function(evt, parms) {
+        var c_id, d_id, f_id;
+        if (parms.field.name == 'company') {
+            c.data.company = parms.displayValue;
+            c.data.company_id = parms.newValue;
+            console.log(c.data.company_id);
+            c_id = parms.newValue;
+
+        }
+        if (parms.field.name == 'department') {
+            c.data.department = parms.displayValue;
+            c.data.department_id = parms.newValue;
+            console.log(c.data.department_id);
+            c.data.customer_found = true;
+            c_id = c.data.company_id;
+            d_id = parms.newValue;
+        }
+
+        if (parms.field.name == 'room') {
+            c.data.room = parms.displayValue;
+            c.data.room_id = parms.newValue;
+            c.data.customer_found = true;
+            c_id = c.data.company_id;
+            d_id = c.data.department_id;
+        }
+        c.data.dept_query = "hospital=" + c_id;
+        c.data.room_query = "hospital=" + c_id;
+        if (!c.manualScan &amp;&amp; c.data.barcode) {
+            c.server.update().then(function(response) {
+                spUtil.update($scope);
+            });
+        }
+    });
+}]]&gt;&lt;/client_script&gt;&lt;controller_as&gt;c&lt;/controller_as&gt;&lt;css&gt;h1 {&amp;#13;
+color: #428bca;&amp;#13;
+}&amp;#13;
+#scanForm {&amp;#13;
+&amp;amp; .ng-touched.ng-valid,&amp;#13;
+.ng-dirty.ng-valid {&amp;#13;
+    background-color: lightgreen;&amp;#13;
+}&amp;#13;
+&amp;amp; .ng-touched.ng-invalid,&amp;#13;
+.ng-dirty.ng-invalid {&amp;#13;
+    background-color: pink;&amp;#13;
+&amp;#13;
+}&amp;#13;
+}&amp;#13;
+&amp;#13;
+  .form-group.required .control-label:after {&amp;#13;
+  content:"*";&amp;#13;
+  color:red;&amp;#13;
+}&amp;#13;
+span {&amp;#13;
+  display: table;&amp;#13;
+  margin: 0 auto;&amp;#13;
+  &amp;#13;
+}&amp;#13;
+.form-actions {&amp;#13;
+    margin: 0;&amp;#13;
+    background-color: transparent;&amp;#13;
+    text-align: center;&amp;#13;
+}&lt;/css&gt;&lt;data_table&gt;sp_instance&lt;/data_table&gt;&lt;demo_data&gt;{&amp;#13;
+	"data": {&amp;#13;
+		"barcode": ""&amp;#13;
+	}&amp;#13;
+}&lt;/demo_data&gt;&lt;description/&gt;&lt;docs/&gt;&lt;field_list/&gt;&lt;has_preview&gt;true&lt;/has_preview&gt;&lt;id&gt;mme-bulk-scan&lt;/id&gt;&lt;internal&gt;false&lt;/internal&gt;&lt;link/&gt;&lt;name&gt;MME Bulk Scan&lt;/name&gt;&lt;option_schema/&gt;&lt;public&gt;true&lt;/public&gt;&lt;roles&gt;x_ahho_movable_med.users&lt;/roles&gt;&lt;script&gt;&lt;![CDATA[(function() {
+    var parm_action = $sp.getParameter('action') || $sp.getParameter('a') || data.scan_action;
+    var requestSysId = $sp.getParameter('reqID') || data.requestSysId;
+    var parm_asset = $sp.getParameter('mmeid') || data.manualBarcode;
+    if (parm_asset != '') {
+        data.manual_scan = "checked";
+        data.manualBarcode = parm_asset;
+    }
+
+    data.requestSysId = requestSysId;
+    if (parm_action != null) {
+        data.actionIsReadOnly = true;
+    }
+    var instance = gs.getProperty('x_ahho_movable_med.rsqm_instance_name');
+
+    if (input) {
+        if (!input.department) {
+            data.customer_found = null;
+        }
+        if (input.requestSysId) {
+            requestSysId = input.requestSysId;
+        }
+        data.scan_location_barcode = input.scan_location_barcode;
+        var customer, customer_id, location, location_id, room, room_id;
+        if (input.location_barcode) {
+            var grRoom = new GlideRecord('x_ahho_movable_med_room');
+            grRoom.addQuery('id', input.location_barcode);
+            grRoom.query();
+            if (grRoom.next()) {
+                data.customer_found = true;
+                customer = grRoom.hospital.getDisplayValue();
+                customer_id = grRoom.hospital.sys_id.toString();
+                location = grRoom.location.getDisplayValue();
+                location_id = grRoom.location.sys_id;
+                room = grRoom.getDisplayValue();
+                room_id = grRoom.sys_id;
+            } else {
+                data.customer_found = false;
+            }
+            data.customer = customer;
+            data.customer_id = customer_id;
+            data.location = location;
+            data.location_id = location_id;
+            data.room = room;
+            data.room_id = room_id;
+        }
+        data.company_id = input.company_id;
+        data.department_id = input.department_id;
+        data.room = input.room_id;
+        console.log("Before if");
+        console.log("data.customer = " + data.company_id);
+        console.log("data.location = " + data.department_id);
+        if (data.company_id != undefined &amp;&amp; data.department_id != undefined &amp;&amp; (input.barcode != "" || input.manualBarcode != "")) {
+            var barcode = input.barcode || input.manualBarcode;
+            data.barcode = barcode;
+            console.log("Barcode server side=" + barcode);
+            if (customer == undefined) {
+                customer_id = input.company_id;
+            }
+            if (location == undefined) {
+                location_id = input.department_id;
+            }
+            if (room == undefined) {
+                room_id = input.room_id || "";
+
+            }
+            var customerGR = new GlideRecord('u_entity');
+            customerGR.get(customer_id);
+            if (customerGR.getValue('u_work_order_version') == 'RSQM') {
+                var responseBody;
+                var requestBody;
+                var r;
+                var query = "active=true^company.name=" + input.company + "^u_ceid.u_ceid=" + barcode + "^u_work_order_typeINAlert,Preventative Maintenance";
+                //encodeURIComponent("active=true^company.name="+customer+"u_ceid.u_ceid="+gr.ceid);
+                try {
+                    r = new sn_ws.RESTMessageV2('RSQM Work Order integration', 'get');
+                    r.setStringParameter('instance', instance);
+                    r.setQueryParameter("sysparm_query", query);
+                    r.setQueryParameter("sysparm_count", true);
+                    r.setQueryParameter("sysparm_group_by", "u_work_order_type");
+                    console.log("Start-" + new GlideDateTime());
+                    var response = r.execute();
+                    responseBody = response.haveError() ? response.getErrorMessage() : response.getBody();
+                    var responseStatus = response.getStatusCode();
+                } catch (ex) {
+                    responseBody = ex.getMessage();
+                    status = '500';
+                } finally {
+                    requestBody = r ? r.getRequestBody() : null;
+                }
+                console.log("END-" + new GlideDateTime());
+                //console.log(responseBody);
+                data.list = JSON.parse(responseBody);
+            }
+            var gr = new GlideRecord('x_ahho_movable_med_movable_medical_equipment');
+            gr.addQuery('asset_tag', barcode);
+            gr.query();
+            var message;
+            var scan_status = '';
+            var fail_reason = '';
+            if (gr.next()) {
+                data.id = gr.getUniqueValue();
+                if (gr.equipment_status == 'retired') {
+                    scan_status = 'failure';
+                    fail_reason = 'retired';
+                    logScan();
+                } else {
+                    if (customer_id != gr.location) {
+                        scan_status = 'success';
+                        fail_reason = 'customer_change';
+                        data.loc = gr.location;
+                        data.loc_dv = gr.location.getDisplayValue();
+                    }
+
+                    scan_status = 'success';
+                    message = 'Scanned barcode ' + barcode;
+                    logScan();
+                    if (input.scan_action == 'clean_and_transfer') {
+                        createAction('cleaned');
+                        createAction('transfer');
+                    } else {
+                        createAction(input.scan_action);
+                    }
+                }
+            } else {
+                //data.barcode = barcode;
+                message = 'Barcode ' + barcode + ' not found';
+                scan_status = 'failure';
+                fail_reason = 'not_found';
+                logScan();
+            }
+
+
+            //data.barcode = barcode;
+            data.message = (barcode.length &gt; 0) ? message : "";
+            data.scan_status = (barcode.length &gt; 0) ? scan_status : null;
+            data.fail_reason = fail_reason;
+
+        }
+        return;
+    }
+    
+    data.hasRoom = [{
+        name: 'Yes',
+        value: 'yes'
+    }, {
+        name: 'No',
+        value: 'no'
+    }];
+    data.scan_location_barcode = 'yes';
+    data.actions = [];
+    var action = new GlideRecord('sys_choice');
+    action.addQuery('name', 'x_ahho_movable_med_mme_action');
+    action.addQuery('element', 'action');
+    action.addQuery('language', 'en');
+    action.addQuery('inactive', false);
+    action.query();
+    while (action.next()) {
+        var myAction = {};
+        myAction.label = action.label.getDisplayValue();
+        myAction.value = action.value.getDisplayValue();
+        myAction.selected = parm_action == action.value.getDisplayValue() ? "selected" : "";
+        data.actions.push(myAction);
+    }
+    myAction.label = "Clean and Transfer";
+    myAction.value = "clean_and_transfer";
+    myAction.selected = parm_action == "clean_and_transfer" ? "selected" : "";
+    data.actions.push(myAction);
+    data.scan_action = parm_action;
+    data.status = [];
+    var status = new GlideRecord('sys_choice');
+    status.addQuery('name', 'x_ahho_movable_med_movable_medical_equipment');
+    status.addQuery('element', 'equipment_status');
+    status.addQuery('language', 'en');
+    status.addQuery('inactive', false);
+    status.orderBy("sequence");
+    status.query();
+    while (status.next()) {
+        var myStatus = {};
+        myStatus.label = status.label.getDisplayValue();
+        myStatus.value = status.value.getDisplayValue();
+        if (status.label.getDisplayValue() == "Clean") {
+            data.equip_status = "active"; //Set the default to Clean
+        } else {
+            myStatus.selected = "";
+        }
+        data.status.push(myStatus);
+    }
+
+    function logScan() {
+        var grScan = new GlideRecord('x_ahho_movable_med_scan_log');
+        grScan.initialize();
+        grScan.barcode = barcode;
+        grScan.equipment = gr.sys_id;
+        grScan.scan_result = scan_status;
+        grScan.failure_reason = fail_reason;
+        grScan.rep = gs.getUserID();
+        grScan.insert();
+
+    }
+
+    function createAction(action) {
+        var grAction = new GlideRecord('x_ahho_movable_med_mme_action');
+        grAction.initialize();
+        grAction.equipment_status = input.equip_status;
+        grAction.action = action;
+        grAction.barcode = barcode;
+        grAction.u_mme_id = gr.sys_id;
+        grAction.u_location = location_id;
+        grAction.location = customer_id;
+        grAction.setValue("room", room_id);
+        grAction.notes = input.notes;
+        grAction.insert();
+        var req = new x_ahho_movable_med.mmeScanUtil();
+
+        if (requestSysId != null) {
+            req.closeRequest(requestSysId);
+        }
+    }
+})();]]&gt;&lt;/script&gt;&lt;servicenow&gt;false&lt;/servicenow&gt;&lt;sys_class_name&gt;sp_widget&lt;/sys_class_name&gt;&lt;sys_created_by&gt;amKatulak&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-04-13 19:54:42&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;true&lt;/sys_customer_update&gt;&lt;sys_id&gt;4f8086aa13c2ba40d80074c66144b01e&lt;/sys_id&gt;&lt;sys_mod_count&gt;721&lt;/sys_mod_count&gt;&lt;sys_name&gt;MME Bulk Scan&lt;/sys_name&gt;&lt;sys_package display_value="Mobile Medical Equipment" source="x_ahho_movable_med"&gt;3d8922a01378aa00b38973076144b0bc&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Mobile Medical Equipment"&gt;3d8922a01378aa00b38973076144b0bc&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_widget_4f8086aa13c2ba40d80074c66144b01e&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;rqmarvin&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-11-02 16:16:08&lt;/sys_updated_on&gt;&lt;template&gt;&lt;![CDATA[&lt;div class="panel panel-default"&gt;
+    &lt;div class="panel-body"&gt;
+        &lt;div ng-if="c.data.result!=''"&gt;
+            &lt;div ng-repeat="k in c.data.list.result track by $index"&gt;
+                &lt;div ng-if="c.data.list.result['0'].stats.count&gt;0"&gt;
+                    &lt;div class="alert alert-danger"&gt;Open {{c.data.list.result[$index].groupby_fields["0"].value}} Work Orders - {{c.data.list.result[$index].stats.count}}&lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="form-group required" ng-show="false"&gt;
+                &lt;div class="hidden"&gt;
+                    &lt;input type="hidden" id="requestSysId" value="{{data.requestSysId}}"&gt;
+                &lt;/div&gt;
+                &lt;label class="control-label"&gt;${Action}&lt;/label&gt;
+                &lt;select class="form-control" ng-required="true" required="true" ng-disabled="{{data.actionIsReadOnly}}" ng-options="action.value as action.label for action in data.actions" ng-selected="data.action.selected" ng-model="c.data.scan_action" /&gt;
+            &lt;/div&gt;
+            &lt;div ng-if="c.data.scan_status=='failure' &amp;&amp; c.data.fail_reason=='not_found'" class="alert alert-danger"&gt;
+                {{c.data.message}}&lt;a href="mme?id=form&amp;table=x_ahho_movable_med_movable_medical_equipment&amp;sys_id=-1&amp;sysparm_query=location={{c.data.customer}}^asset_tag={{c.data.barcode}}" target="_blank"&gt;Add New&lt;/a&gt;
+            &lt;/div&gt;
+            &lt;div ng-if="c.data.scan_status=='failure' &amp;&amp; c.data.fail_reason=='retired'" class="alert alert-danger"&gt;
+                Barcode &lt;a href="/x_ahho_movable_med_movable_medical_equipment.do?sys_id={{c.data.id}}" target="_blank"&gt; {{c.data.barcode}}&lt;/a&gt; is retired.
+            &lt;/div&gt;
+            &lt;div ng-if="c.data.scan_status=='success'" class="alert alert-success"&gt;
+                {{ c.data.message }}
+            &lt;/div&gt;
+            &lt;div class="form-group" ng-if="c.data.scan_action == 'validate'"&gt;
+                &lt;label&gt;${Status}&lt;/label&gt;
+                &lt;select class="form-control" ng-required="true" required="true" ng-options="status.value as status.label for status in data.status" selected="data.status.selected" ng-model="c.data.equip_status" /&gt;
+                &lt;!-- &lt;select class="form-control required" ng-model="c.data.equip_status"&gt;
+       &lt;option ng-repeat="status in data.status" value="{{status.value}}" ng-selected="{{status.selected}}"&gt;{{status.label}}&lt;/option&gt; 
+        
+      &lt;/select&gt; --&gt;
+            &lt;/div&gt;
+            &lt;div class="form-group required"&gt;
+                &lt;div class="form-group required"&gt;
+                    &lt;label class="control-label"&gt;${Does your location have a barcode?}&lt;/label&gt;
+                    &lt;select class="form-control" ng-change="c.toggleLocation()" ng-required="true" required="true" ng-options="hasRoom.value as hasRoom.name for hasRoom in data.hasRoom" ng-selected="yes" ng-model="c.data.scan_location_barcode" /&gt;
+                    &lt;!-- &lt;select class="form-control" ng-model="c.data.scan_location_barcode" ng-change="c.toggleLocation()"&gt;
+              &lt;option value="yes" ng-selected&gt;${Yes}&lt;/option&gt;
+              &lt;option value="no"&gt;${No}&lt;/option&gt;
+            &lt;/select&gt; --&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="form-group required" ng-if="c.data.scan_location_barcode=='yes'"&gt;
+                &lt;label class="control-label"&gt;${Location barcode}&lt;/label&gt;
+                &lt;input class="form-control" ng-model="c.data.location_barcode" field="location_barcode" id="location_barcode" ng-change="c.setLocation()" required="true" ng-model-options="{debounce: 500}" /&gt;
+                &lt;div ng-if="c.isNative"&gt;${Scan using your phone}&lt;i class="fa fa-barcode fa-4" ng-click="c.getLocationBarcode()"&gt;&lt;/i&gt;&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div ng-if="c.data.customer_found==false &amp;&amp; c.data.scan_location_barcode=='yes'" class="alert alert-danger"&gt;
+                ${Location barcode {{data.location_barcode}} was not found}
+            &lt;/div&gt;
+            &lt;div ng-if="c.data.customer_found==true || c.data.scan_location_barcode=='no'"&gt;
+                &lt;div class="form-group"&gt;
+                    &lt;label&gt;${Customer}&lt;/label&gt;
+                    &lt;sn-record-picker field="company" table="'u_entity'" default-query="'x_ahho_movable_med_mme_service_provided=true'" value-field="'sys_id'" display-field="'u_long_name'" search-fields="'name'" page-size="100" ng-readonly=c.data.customer_found&amp;&amp;c.data.location_barcode&gt;
+                    &lt;/sn-record-picker&gt;
+                &lt;/div&gt;
+                &lt;div ng-if="c.data.scan_status=='success' &amp;&amp; c.data.fail_reason == 'customer_change'" class="alert alert-warning"&gt;
+                    ${The customer for this device, {{c.data.barcode}} is changing! It was {{c.data.loc_dv}} .}
+                &lt;/div&gt;
+                &lt;div class="form-group"&gt;
+                    &lt;label&gt;Department&lt;/label&gt;
+                    &lt;sn-record-picker field="department" table="'x_ahho_movable_med_location'" display-field="'display_value'" search-fields="'name,hospital'" page-size="100" default-query=c.data.dept_query ng-readonly=c.data.customer_found&amp;&amp;c.data.location_barcode&gt;
+                    &lt;/sn-record-picker&gt;
+                &lt;/div&gt;
+                &lt;div class="form-group"&gt;
+                    &lt;label&gt;${Room}&lt;/label&gt;
+                    &lt;sn-record-picker field="room" table="'x_ahho_movable_med_room'" display-field="'name'" display-fields="'hospital'" value-field="'sys_id'" search-fields="'name'" default-query=c.data.room_query page-size="100" ng-readonly=c.data.customer_found&amp;&amp;c.data.location_barcode&gt;
+                    &lt;/sn-record-picker&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="form-group required" ng-if="c.data.scan_action == 'check_in' || c.data.scan_action == 'check_out'"&gt;
+                &lt;label class="control-label"&gt;${Notes}&lt;/label&gt;
+                &lt;form name="scanForm" id="scanForm"&gt;
+                    &lt;textarea class="form-control" ng-model="c.data.notes" required ng-minlength="4" ng-required="required" style="min-width: 100%" name="notes" id="notes"&gt;&lt;/textarea&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+            &lt;div class="form-group required" ng-if="(c.data.scan_action != null &amp;&amp; c.data.location_barcode != null &amp;&amp; c.data.customer_found==true)"&gt;
+                &lt;label class="control-label"&gt;${Device Barcode}&lt;/label&gt;
+                &lt;div class="hidden" ng-if="c.isNative"&gt;
+                    &lt;label&gt;
+                        &lt;input type="checkbox" value="" ng-model="c.keepScanning"&gt;${Continuous Scanning (camera phone)}&lt;/label&gt;
+                &lt;/div&gt;
+                &lt;label&gt;
+                    &lt;input type="checkbox" value="" ng-model="c.manualScan" &gt;${ Manual Entry}&lt;/label&gt;
+                &lt;div ng-if="c.manualScan"&gt;
+                    &lt;input class="form-control" id="barcode" type="text" ng-model="c.data.manualBarcode" /&gt;
+                    &lt;div class="form-actions"&gt;
+                        &lt;button type="submit" class="btn btn-primary btn-lg" ng-click="c.display()" ng-disabled="!c.data.manualBarcode"&gt;${Submit}&lt;/button&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;div ng-if="!c.manualScan"&gt;
+                    &lt;input class="form-control" id="barcode" type="text" ng-model="c.data.barcode" ng-model-options="{debounce: 50}" ng-change="c.display()" ng-disabled="c.data.isLoading" focus-me="!c.data.barcode"/&gt;
+                &lt;/div&gt;
+                &lt;div ng-if="c.isNative"&gt;${Scan using your phone}&lt;i class="fa fa-barcode fa-4" aria-hidden="true" ng-click="c.getBarcode()"&gt;&lt;/i&gt;&lt;/div&gt;
+                &lt;span ng-if="c.data.isLoading"&gt;&lt;i class="fa fa-spinner fa-spin fa-3x fa-fw"&gt;&lt;/i&gt;&lt;/span&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- &lt;pre class="code"&gt;{{ c.data.equip_status | json }}&lt;/pre&gt; --&gt;]]&gt;&lt;/template&gt;&lt;/sp_widget&gt;&lt;/record_update&gt;</payload><remote_update_set display_value="RQM - STRY0017998 - Incident - Validation Default">d9fb1c79130f0380cb92b7a66144b06a</remote_update_set><replace_on_upgrade>false</replace_on_upgrade><sys_created_by>rwKeller</sys_created_by><sys_created_on>2017-12-15 17:53:43</sys_created_on><sys_id>ddfb1c79130f0380cb92b7a66144b06a</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rwKeller</sys_updated_by><sys_updated_on>2017-12-15 17:53:43</sys_updated_on><table/><target_name>MME Bulk Scan</target_name><type>Widget</type><update_domain>global</update_domain><update_set/><view/></sys_update_xml></unload>
