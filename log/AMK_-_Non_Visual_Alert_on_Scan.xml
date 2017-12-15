@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?><unload unload_date="2017-12-15 16:03:48"><sys_remote_update_set><application display_value="Mobile Medical Equipment">3d8922a01378aa00b38973076144b0bc</application><application_name>Mobile Medical Equipment</application_name><application_scope>x_ahho_movable_med</application_scope><application_version>3.0.6</application_version><collisions/><commit_date/><deleted/><description/><inserted/><name>AMK - Non Visual Alert on Scan</name><origin_sys_id/><release_date/><remote_sys_id>ccf5d96f137f7200cb92b7a66144b0d8</remote_sys_id><state>loaded</state><summary/><sys_class_name>sys_remote_update_set</sys_class_name><sys_created_by>rwKeller</sys_created_by><sys_created_on>2017-12-15 16:03:48</sys_created_on><sys_id>47c208fd138b0380cb92b7a66144b088</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rwKeller</sys_updated_by><sys_updated_on>2017-12-15 16:03:48</sys_updated_on><update_set/><update_source/><updated/></sys_remote_update_set><sys_update_xml><action>INSERT_OR_UPDATE</action><application display_value="Mobile Medical Equipment">3d8922a01378aa00b38973076144b0bc</application><category>customer</category><comments/><name>sp_widget_4f8086aa13c2ba40d80074c66144b01e</name><payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_widget"&gt;&lt;sp_widget action="INSERT_OR_UPDATE"&gt;&lt;client_script&gt;&lt;![CDATA[function($scope,spUtil,cabrillo,$http,$window) {
+	
+	var c = this;
+	c.isNative = cabrillo.isNative();
+	$scope.company = {
+		displayValue : c.data.customer,
+		value : c.data.customer_id,
+		name : 'company'
+	};
+	$scope.department = {
+		displayValue : c.data.location,
+		value : c.data.location_id,
+		name : 'department'
+	};
+	
+	$scope.room = {
+		displayValue : c.data.room,
+		value : c.data.room_id,
+		name : 'room'
+	};
+	c.display = function() {
+		c.data.isLoading = true;
+		var query = encodeURIComponent("company.name="+c.data.company+"u_ceid.u_ceid="+c.data.barcode);
+		var instance = c.data.instance;
+/*		try {
+			
+			$http.get("https://"+instance+".service-now.com/api/now/stats/wm_order?sysparm_query="+query+"sysparm_count=true").success(function(response) {
+				c.data.list = response.result;
+				console.log(c.data.list);
+			});
+		} 
+		catch (ex) {
+			var message = ex.message;
+			} 
+		*/
+
+		c.server.update().then(function(data) {
+			c.data.barcode = null;
+			c.data.manualBarcode = null;
+			c.data.isLoading = false;
+			if (c.data.scan_status == 'failure') {
+				var audio = new Audio("/sys_attachment.do?sys_id=b1e6ddbf133bb200d80074c66144b008");
+				audio.play();
+				navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate;
+				c.vibrateSuccess = navigator.vibrate(1000);
+				
+			}
+			
+		});
+	};
+	c.getBarcode = function() {
+		cabrillo.camera.getBarcode().then(function(value) {
+			c.data.barcode = value;
+			c.display();
+			if (c.keepScanning) {
+				c.getBarcode();
+			}
+		});
+	};
+	c.getLocationBarcode = function() {
+		cabrillo.camera.getBarcode().then(function(value) {
+			c.data.location_barcode = value;
+			c.setLocation();
+		});
+	};
+	c.toggleLocation = function() {
+		if (c.data.scan_location_barcode == 'no') {
+			clearValues();
+		} else {
+			c.data.customer_found = null;
+		}
+	};
+	clearValues = function() {
+		c.data.customer_found = false;
+		c.data.location_barcode = '';
+		$scope.company = {
+			displayValue : '',
+			value : '',
+			name : 'company'
+		};
+		$scope.department = {
+			displayValue : '',
+			value : '',
+			name : 'department'
+		};
+		$scope.room = {
+			displayValue : '',
+			value : '',
+			name : 'room'
+		};
+	};
+	c.setLocation = function() {
+		
+		c.server.update().then(function(data) {
+			c.data.customer = data.customer;
+			c.data.room = data.room;
+			c.data.location = data.location;
+			//Adding field values and listeners
+			$scope.company = {
+				displayValue : c.data.customer,
+				value : c.data.customer_id,
+				name : 'company'
+			};
+			$scope.department = {
+				displayValue : c.data.location,
+				value : c.data.location_id,
+				name : 'department'
+			};
+			$scope.room = {
+				displayValue : c.data.room,
+				value : c.data.room_id,
+				name : 'room'
+			};
+			
+		});
+		$window.setTimeout(1000);
+		//console.log($window.document.getElementById("barcode"));
+		$window.document.getElementById("barcode").focus();
+	};
+	
+	
+	$scope.$on("field.change", function(evt, parms) {
+		var c_id, d_id, f_id;
+		if (parms.field.name == 'company') {
+			c.data.company = parms.displayValue;
+			c.data.company_id = parms.newValue;
+			c_id = parms.newValue;
+			
+		}
+		if (parms.field.name == 'department') {
+			c.data.department = parms.displayValue;
+			c.data.department_id = parms.newValue;
+			c.data.customer_found = true;
+			c_id = c.data.company_id;
+			d_id = parms.newValue;
+		}
+		
+		if (parms.field.name == 'room') {
+			c.data.room = parms.displayValue;
+			c.data.room_id = parms.newValue;
+			c.data.customer_found = true;
+			c_id  = c.data.company_id;
+			d_id = c.data.department_id;
+		}
+		c.data.dept_query = "hospital="+c_id;
+		c.data.room_query = "hospital="+c_id;
+		c.server.update().then(function(response) {
+			spUtil.update($scope);
+		});
+	});
+}
+
+
+
+
+]]&gt;&lt;/client_script&gt;&lt;controller_as&gt;c&lt;/controller_as&gt;&lt;css&gt;h1 {&amp;#13;
+color: #428bca;&amp;#13;
+}&amp;#13;
+#scanForm {&amp;#13;
+&amp;amp; .ng-touched.ng-valid,&amp;#13;
+.ng-dirty.ng-valid {&amp;#13;
+    background-color: lightgreen;&amp;#13;
+}&amp;#13;
+&amp;amp; .ng-touched.ng-invalid,&amp;#13;
+.ng-dirty.ng-invalid {&amp;#13;
+    background-color: pink;&amp;#13;
+&amp;#13;
+}&amp;#13;
+}&amp;#13;
+&amp;#13;
+  .form-group.required .control-label:after {&amp;#13;
+  content:"*";&amp;#13;
+  color:red;&amp;#13;
+}&amp;#13;
+span {&amp;#13;
+  display: table;&amp;#13;
+  margin: 0 auto;&amp;#13;
+  &amp;#13;
+}&amp;#13;
+.form-actions {&amp;#13;
+    margin: 0;&amp;#13;
+    background-color: transparent;&amp;#13;
+    text-align: center;&amp;#13;
+}&lt;/css&gt;&lt;data_table&gt;sp_instance&lt;/data_table&gt;&lt;demo_data&gt;{&amp;#13;
+	"data": {&amp;#13;
+		"barcode": ""&amp;#13;
+	}&amp;#13;
+}&lt;/demo_data&gt;&lt;description/&gt;&lt;docs/&gt;&lt;field_list/&gt;&lt;has_preview&gt;true&lt;/has_preview&gt;&lt;id&gt;mme-bulk-scan&lt;/id&gt;&lt;internal&gt;false&lt;/internal&gt;&lt;link/&gt;&lt;name&gt;MME Bulk Scan&lt;/name&gt;&lt;option_schema/&gt;&lt;public&gt;true&lt;/public&gt;&lt;roles&gt;x_ahho_movable_med.users&lt;/roles&gt;&lt;script&gt;&lt;![CDATA[(function() {
+	var parm_action = $sp.getParameter('action') || $sp.getParameter('a') || data.scan_action;
+	var requestSysId = $sp.getParameter('reqID') || data.requestSysId; 
+	data.requestSysId = requestSysId;
+	if (parm_action != null) {
+		data.actionIsReadOnly = true;
+	}
+	var instance = gs.getProperty('x_ahho_movable_med.rsqm_instance_name');
+
+	data.actions = [];
+	var action = new GlideRecord('sys_choice');
+	action.addQuery('name','x_ahho_movable_med_mme_action');
+	action.addQuery('element','action');
+	action.addQuery('language','en');
+	action.addQuery('inactive',false);
+	action.query();
+	while (action.next()) {
+		var myAction = {};
+		myAction.label = action.label.getDisplayValue();
+		myAction.value = action.value.getDisplayValue();
+		myAction.selected = parm_action == action.value.getDisplayValue() ? "selected" : "";
+		data.actions.push(myAction);
+	}
+	myAction.label = "Clean and Transfer";
+	myAction.value = "clean_and_transfer";
+	myAction.selected = parm_action == "clean_and_transfer" ? "selected" : "";
+	data.actions.push(myAction);
+	data.scan_action = parm_action;
+	data.status = [];
+	var status = new GlideRecord('sys_choice');
+	status.addQuery('name','x_ahho_movable_med_movable_medical_equipment');
+	status.addQuery('element','equipment_status');
+	status.addQuery('language','en');
+	status.addQuery('inactive',false);
+	status.query();
+	while (status.next()) {
+		var myStatus = {};
+		myStatus.label = status.label.getDisplayValue();
+		myStatus.value = status.value.getDisplayValue();
+		data.status.push(myStatus);
+	}
+	if (input) {
+		if (!input.department) {
+			data.customer_found=null;
+		}
+		if (input.requestSysId) {
+			requestSysId = input.requestSysId;
+		}
+		
+		var customer, customer_id, location, location_id, room, room_id;
+		if (input.location_barcode) {
+			var grRoom = new GlideRecord('x_ahho_movable_med_room');
+			grRoom.addQuery('id',input.location_barcode);
+			grRoom.query();
+			if (grRoom.next()) {
+				data.customer_found=true;
+				customer=grRoom.hospital.getDisplayValue();
+				customer_id=grRoom.hospital.sys_id.toString();
+				location=grRoom.location.getDisplayValue();
+				location_id=grRoom.location.sys_id;
+				room=grRoom.getDisplayValue();
+				room_id=grRoom.sys_id;
+			} else {
+				data.customer_found=false;
+			}
+			data.customer=customer;
+			data.customer_id=customer_id;
+			data.location=location;
+			data.location_id=location_id;
+			data.room=room;
+			data.room_id=room_id;
+		}
+		
+		if (input.barcode || input.manualBarcode) {
+			var barcode = input.barcode || input.manualBarcode;
+			data.barcode = barcode;
+			if (customer == undefined) {
+				customer_id = input.company_id;
+			}
+			if (location == undefined) {
+				location_id = input.department_id;
+			}
+			if (room == undefined) {
+				room_id = input.room_id || "";
+				
+			}
+			var customerGR = new GlideRecord('u_entity');
+			customerGR.get(customer_id);
+			if (customerGR.getValue('u_work_order_version') == 'RSQM') {
+				var responseBody;
+					var requestBody;
+					var r;
+					var query = "active=true^company.name="+input.company+"^u_ceid.u_ceid="+barcode+"^u_work_order_typeINAlert,Preventative Maintenance";
+					//encodeURIComponent("active=true^company.name="+customer+"u_ceid.u_ceid="+gr.ceid);
+					try {
+					r = new sn_ws.RESTMessageV2('RSQM Work Order integration','get');					
+					r.setStringParameter('instance',instance);
+					r.setQueryParameter("sysparm_query",query);
+					r.setQueryParameter("sysparm_count",true);
+					r.setQueryParameter("sysparm_group_by","u_work_order_type");
+						console.log("Start-"+new GlideDateTime());
+					var response = r.execute();  
+							responseBody = response.haveError() ? response.getErrorMessage() : response.getBody();
+					var responseStatus = response.getStatusCode();
+					} catch(ex) {
+						responseBody = ex.getMessage();
+						status = '500';
+					} finally {
+						requestBody = r ? r.getRequestBody():null;
+					}
+				console.log("END-"+new GlideDateTime());
+				data.list = JSON.parse(responseBody);
+			}
+			var gr = new GlideRecord('x_ahho_movable_med_movable_medical_equipment');
+			gr.addQuery('asset_tag',barcode);
+			gr.query();
+			var message;
+			var scan_status = '';
+			var fail_reason = '';
+			if (gr.next()) {
+				data.id = gr.getUniqueValue();
+				if (gr.equipment_status == 'retired') {
+					scan_status = 'failure';
+					fail_reason = 'retired';
+					logScan();
+				} else {
+					if (customer_id != gr.location) {
+						scan_status = 'success';
+						fail_reason = 'customer_change';
+						data.loc = gr.location;
+						data.loc_dv = gr.location.getDisplayValue();
+					}
+				
+					scan_status = 'success';
+					message = 'Scanned barcode ' + barcode;
+					logScan();
+					if (input.scan_action == 'clean_and_transfer') {
+						createAction('cleaned');
+						createAction('transfer');
+					} else {
+						createAction(input.scan_action);
+					}
+				}
+			}
+			else {
+				//data.barcode = barcode;
+				message = 'Barcode ' + barcode + ' not found';
+				scan_status = 'failure';
+				fail_reason = 'not_found';
+				logScan();
+			}
+				
+			
+			//data.barcode = barcode;
+			data.message = (barcode.length &gt; 0) ? message : "";
+			data.scan_status = (barcode.length &gt; 0) ? scan_status : null;
+			data.fail_reason = fail_reason;
+			
+		}
+	}
+	function logScan() {
+		var grScan = new GlideRecord('x_ahho_movable_med_scan_log');
+		grScan.initialize();
+		grScan.barcode = barcode;
+		grScan.equipment = gr.sys_id;
+		grScan.scan_result = scan_status;
+		grScan.failure_reason = fail_reason;
+		grScan.rep = gs.getUserID();
+		grScan.insert();
+		
+	}
+	function createAction(action) {
+		var grAction = new GlideRecord('x_ahho_movable_med_mme_action');
+		grAction.initialize();
+		grAction.equipment_status = input.equip_status;
+		grAction.action = action;
+		grAction.barcode = barcode;
+		grAction.u_mme_id = gr.sys_id;
+		grAction.u_location = location_id;
+		//gs.addInfoMessage("Customer ID in the Action = "+customer_id);
+		grAction.location = customer_id;
+		grAction.setValue("room", room_id);
+		grAction.notes = input.notes;
+		grAction.insert();
+		var req = new x_ahho_movable_med.mmeScanUtil();
+
+		if (requestSysId != null) {
+			req.closeRequest(requestSysId);
+		}
+	}
+})();]]&gt;&lt;/script&gt;&lt;servicenow&gt;false&lt;/servicenow&gt;&lt;sys_class_name&gt;sp_widget&lt;/sys_class_name&gt;&lt;sys_created_by&gt;amKatulak&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-04-13 19:54:42&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;true&lt;/sys_customer_update&gt;&lt;sys_id&gt;4f8086aa13c2ba40d80074c66144b01e&lt;/sys_id&gt;&lt;sys_mod_count&gt;594&lt;/sys_mod_count&gt;&lt;sys_name&gt;MME Bulk Scan&lt;/sys_name&gt;&lt;sys_package display_value="Mobile Medical Equipment" source="x_ahho_movable_med"&gt;3d8922a01378aa00b38973076144b0bc&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Mobile Medical Equipment"&gt;3d8922a01378aa00b38973076144b0bc&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_widget_4f8086aa13c2ba40d80074c66144b01e&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;amKatulak&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 13:18:10&lt;/sys_updated_on&gt;&lt;template&gt;&lt;![CDATA[&lt;div class="panel panel-default"&gt;
+  &lt;div class="panel-body"&gt;
+
+    &lt;div ng-if="c.data.result!=''"&gt;
+    &lt;div ng-repeat="k in c.data.list.result track by $index"&gt;
+      &lt;div ng-if="c.data.list.result['0'].stats.count&gt;0"&gt;
+      &lt;div class="alert alert-danger"&gt;Open {{c.data.list.result[$index].groupby_fields["0"].value}} Work Orders - {{c.data.list.result[$index].stats.count}}&lt;/div&gt;
+      &lt;/div&gt;
+ 
+    &lt;/div&gt;
+    &lt;div class="form-group required" ng-show="false"&gt;
+      &lt;div class="hidden"&gt;&lt;input type="hidden" id="requestSysId" value="{{data.requestSysId}}"&gt;&lt;/div&gt;
+      &lt;label class="control-label"&gt;${Action}&lt;/label&gt;
+    &lt;select class="form-control" ng-required="true" required="true" ng-disabled="{{data.actionIsReadOnly}}" ng-options="action.value as action.label for action in data.actions" ng-selected="data.action.selected" ng-model="c.data.scan_action"/&gt;
+ 
+    &lt;/div&gt;
+         &lt;div ng-if="c.data.scan_status=='failure' &amp;&amp; c.data.fail_reason=='not_found'" class="alert alert-danger"&gt;
+      {{c.data.message}}&lt;a href="mme?id=form&amp;table=x_ahho_movable_med_movable_medical_equipment&amp;sys_id=-1&amp;sysparm_query=location={{c.data.customer}}^asset_tag={{c.data.barcode}}" target="_blank"&gt;Add New&lt;/a&gt;
+&lt;/div&gt;
+      &lt;div ng-if="c.data.scan_status=='failure' &amp;&amp; c.data.fail_reason=='retired'" class="alert alert-danger"&gt;
+      Barcode &lt;a href="/x_ahho_movable_med_movable_medical_equipment.do?sys_id={{c.data.id}}" target="_blank"&gt; {{c.data.barcode}}&lt;/a&gt; is retired.
+&lt;/div&gt;
+     &lt;div ng-if="c.data.scan_status=='success'" class="alert alert-success"&gt;
+      {{ c.data.message }}
+     &lt;/div&gt; 
+    &lt;div class="form-group" ng-if="c.data.scan_action == 'validate'"&gt;
+      &lt;label&gt;${Status}&lt;/label&gt;
+      &lt;select class="form-control required" ng-model="c.data.equip_status"&gt;
+        &lt;option ng-repeat="status in data.status" value="{{status.value}}"&gt;{{status.label}}&lt;/option&gt;
+        
+      &lt;/select&gt;
+    &lt;/div&gt;
+        &lt;div class="form-group required"&gt;
+          &lt;div class="form-group required"&gt;
+            &lt;label class="control-label"&gt;${Does your location have a barcode?}&lt;/label&gt;
+            &lt;select class="form-control" ng-model="c.data.scan_location_barcode" ng-change="c.toggleLocation()"&gt;
+              &lt;option value="yes"&gt;${Yes}&lt;/option&gt;
+              &lt;option value="no"&gt;${No}&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/div&gt;     
+    &lt;/div&gt;
+    &lt;div class="form-group required" ng-if="c.data.scan_location_barcode=='yes'"&gt;
+      &lt;label class="control-label"&gt;${Location barcode}&lt;/label&gt;
+      &lt;input class="form-control" ng-model="c.data.location_barcode" field="location_barcode" ng-change="c.setLocation()" required="true" ng-model-options="{debounce: 500}") /&gt;
+      &lt;div ng-if="c.isNative"&gt;${Scan using your phone}&lt;i class="fa fa-barcode fa-4" ng-click="c.getLocationBarcode()"&gt;&lt;/i&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div ng-if="c.data.customer_found==false &amp;&amp; c.data.scan_location_barcode=='yes'" class="alert alert-danger"&gt;
+      ${Location barcode {{data.location_barcode}} was not found}
+    &lt;/div&gt;
+    &lt;div ng-if="c.data.customer_found==true || c.data.scan_location_barcode=='no'"&gt;
+      
+    &lt;div class="form-group"&gt;
+      &lt;label&gt;${Customer}&lt;/label&gt;
+      &lt;sn-record-picker field="company" table="'u_entity'" default-query="'x_ahho_movable_med_mme_service_provided=true'" 
+                        value-field="'sys_id'"
+                        display-field="'u_long_name'"
+                        search-fields="'name'"  
+                        page-size="100"
+                        ng-readonly=c.data.customer_found&amp;&amp;c.data.location_barcode&gt;
+      &lt;/sn-record-picker&gt;
+    &lt;/div&gt;
+    &lt;div ng-if="c.data.scan_status=='success' &amp;&amp; c.data.fail_reason == 'customer_change'" class="alert alert-warning"&gt;
+        ${The customer for this device, {{c.data.barcode}} is changing!  It was {{c.data.loc_dv}} .}
+      &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+      &lt;label&gt;Department&lt;/label&gt;
+      &lt;sn-record-picker field="department" table="'x_ahho_movable_med_location'" 
+                        display-field="'display_value'" 
+                        search-fields="'name,hospital'" 
+                        page-size="100" 
+                        default-query=c.data.dept_query
+                        ng-readonly=c.data.customer_found&amp;&amp;c.data.location_barcode&gt;
+          &lt;/sn-record-picker&gt;
+    &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+      &lt;label&gt;${Room}&lt;/label&gt;
+      &lt;sn-record-picker field="room" table="'x_ahho_movable_med_room'" 
+                        display-field="'name'" 
+                        display-fields="'hospital'"
+                        value-field="'sys_id'" 
+                        search-fields="'name'" 
+                        default-query=c.data.room_query
+                        page-size="100" 
+                        ng-readonly=c.data.customer_found&amp;&amp;c.data.location_barcode&gt;
+          &lt;/sn-record-picker&gt;
+    &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="form-group required" ng-if="c.data.scan_action == 'check_in' || c.data.scan_action == 'check_out'"&gt;
+ 
+      &lt;label class="control-label"&gt;${Notes}&lt;/label&gt;
+      &lt;form name="scanForm" id="scanForm"&gt;
+      &lt;textarea class="form-control" ng-model="c.data.notes" required ng-minlength="4" ng-required="required"  style="min-width: 100%" name="notes" id="notes"&gt;&lt;/textarea&gt;
+      &lt;/form&gt;
+    &lt;/div&gt;
+   
+    &lt;div class="form-group required" ng-if="(c.data.scan_action != null &amp;&amp; c.data.location_barcode != null &amp;&amp; c.data.customer_found==true)"&gt;&lt;label class="control-label"&gt;${Device Barcode}&lt;/label&gt;
+       &lt;div class="hidden" ng-if="c.isNative"&gt;
+      &lt;label&gt;&lt;input type="checkbox" value="" ng-model="c.keepScanning"&gt;${Continuous Scanning (camera phone)}&lt;/label&gt;
+    &lt;/div&gt;
+      &lt;label&gt;&lt;input type="checkbox" value="" ng-model="c.manualScan"&gt;${ Manual Entry}&lt;/label&gt;
+      &lt;div ng-if="c.manualScan"&gt;
+       &lt;input class="form-control" id="barcode" type="text" ng-model="c.data.manualBarcode"/&gt;
+        &lt;div class="form-actions"&gt;
+        &lt;button type="submit" class="btn btn-primary btn-lg" ng-click="c.display()" ng-disabled="!c.data.manualBarcode"&gt;${Submit}&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div ng-if="!c.manualScan"&gt;
+ &lt;input class="form-control" id="barcode" type="text" ng-model="c.data.barcode" ng-model-options="{debounce: 50}" ng-change="c.display()" ng-disabled="c.data.isLoading"/&gt;
+      &lt;/div&gt;
+      &lt;div ng-if="c.isNative"&gt;${Scan using your phone}&lt;i class="fa fa-barcode fa-4" aria-hidden="true" ng-click="c.getBarcode()"&gt;&lt;/i&gt;&lt;/div&gt;
+      &lt;span ng-if="c.data.isLoading"&gt;&lt;i class="fa fa-spinner fa-spin fa-3x fa-fw"&gt;&lt;/i&gt;&lt;/span&gt;
+ 
+ 
+    &lt;/div&gt;
+  
+    ]]&gt;&lt;/template&gt;&lt;/sp_widget&gt;&lt;/record_update&gt;</payload><remote_update_set display_value="AMK - Non Visual Alert on Scan">47c208fd138b0380cb92b7a66144b088</remote_update_set><replace_on_upgrade>false</replace_on_upgrade><sys_created_by>rwKeller</sys_created_by><sys_created_on>2017-12-15 16:03:48</sys_created_on><sys_id>0fc208fd138b0380cb92b7a66144b088</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rwKeller</sys_updated_by><sys_updated_on>2017-12-15 16:03:48</sys_updated_on><table/><target_name>MME Bulk Scan</target_name><type>Widget</type><update_domain>global</update_domain><update_set/><view/></sys_update_xml><sys_update_xml><action>INSERT_OR_UPDATE</action><application display_value="Mobile Medical Equipment">3d8922a01378aa00b38973076144b0bc</application><category>customer</category><comments/><name>db_audio_252615bf133bb200d80074c66144b0d0</name><payload><![CDATA[<record_update table="db_audio"><db_audio action="INSERT_OR_UPDATE"><active>true</active><audio/><name>Error.mp3</name><sys_class_name>db_audio</sys_class_name><sys_created_by>amKatulak</sys_created_by><sys_created_on>2017-07-13 13:51:55</sys_created_on><sys_customer_update>true</sys_customer_update><sys_id>252615bf133bb200d80074c66144b0d0</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Error.mp3</sys_name><sys_package display_value="Mobile Medical Equipment" source="x_ahho_movable_med">3d8922a01378aa00b38973076144b0bc</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Mobile Medical Equipment">3d8922a01378aa00b38973076144b0bc</sys_scope><sys_update_name>db_audio_252615bf133bb200d80074c66144b0d0</sys_update_name><sys_updated_by>amKatulak</sys_updated_by><sys_updated_on>2017-07-13 13:51:55</sys_updated_on></db_audio><sys_attachment action="INSERT_OR_UPDATE"><average_image_color/><compressed>true</compressed><content_type>audio/mp3</content_type><encryption_context/><file_name>audio</file_name><image_height/><image_width/><size_bytes>11571</size_bytes><size_compressed>4732</size_compressed><sys_created_by>amKatulak</sys_created_by><sys_created_on>2017-07-13 13:52:05</sys_created_on><sys_id>5e36d5bf133bb200d80074c66144b01d</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>amKatulak</sys_updated_by><sys_updated_on>2017-07-13 13:52:05</sys_updated_on><table_name>ZZ_YYdb_audio</table_name><table_sys_id>252615bf133bb200d80074c66144b0d0</table_sys_id></sys_attachment><sys_attachment_doc action="INSERT_OR_UPDATE"><data>H4sIAAAAAAAAAA==</data><length>16</length><position>0</position><sys_attachment display_value="audio" sys_id="5e36d5bf133bb200d80074c66144b01d">5e36d5bf133bb200d80074c66144b01d</sys_attachment><sys_created_by>amKatulak</sys_created_by><sys_created_on>2017-07-13 13:52:05</sys_created_on><sys_id>5636d5bf133bb200d80074c66144b01e</sys_id></sys_attachment_doc><sys_attachment_doc action="INSERT_OR_UPDATE"><data>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</data><length>3736</length><position>1</position><sys_attachment display_value="audio" sys_id="5e36d5bf133bb200d80074c66144b01d">5e36d5bf133bb200d80074c66144b01d</sys_attachment><sys_created_by>amKatulak</sys_created_by><sys_created_on>2017-07-13 13:52:05</sys_created_on><sys_id>d636d5bf133bb200d80074c66144b01e</sys_id></sys_attachment_doc><sys_attachment_doc action="INSERT_OR_UPDATE"><data>O4Xx+ae2XypCpsKEanSg4ukfe46RuEg+VYpt4+A25CHLTvaSk8sh7uW7e+yQvWVMecislD4Z1ed36E2ejsUlxqYmNWNpR6Gy88nn5rl/oyaXoVHikVf+uUNekrXhUpE9TxxD58r1bXklTXfAB7ZYMw5yTrln0VrdfI/yM43ZCiEyHsHhGXMmKGHh95w7+wZIk4tf4eyQ8ENSpUv0xkPtRlqyS5kkJftD8KRY5amNn7B8YklZwEuv/iM3n/u3zVMnvn6t0Dk5s6U9Md49sGGHT3rkdX0RLffkMLQycmUKdFuSMC+OKgTMXj7A+eQZFs2pU7aLcPf9bu9IxKQiPJimKF8E2r1s+WDbvUwHpA+4Hzx83k3Vy6PRIMBDB5fkSWJfLpa2PPXEKFEQWzbZ92flDf2+lLdTkOv7fo0bfSU7xp0Ta5eSVLwqV8ZXTQ34Uq+Nh8LdM+kztVqoGjk787rh11sin1eqbnTLPZew+cnZim8Od4cMEh4xjhBCzzlH3n34W4R9MwDSc3kEliWYcO7oe6r3fSlFZb8kt+O/JmmvHbETt+wPCiVhDWMHKAg4S44eS6szytClP1CISYY9iKJca3EeZtx2Nb/8ePTbdnmUfukBlxcDOyfz6pR0BlI/nSppQ6VM5KpB0OXpD29TqBvfDowm/7L+RL9SZvovpD0Xuza0xrz5GkOAAflPE/mCkWi3Py5FnTH5aj6j6dFPJS7ZrEq8b3he665ieCHNSFS3CtXvzpG6mhgItgRxQgJXirdZZsZ1qRsjEbC7rgaMwBFEwM0rlZExIU3BR59Hyb27gmHiVsHSCHpYTQJaanxZ6n61wU1tj1YpuUrzCmDyKrSJVCBzZfP0gbTvv7DkfmUC/Lk/Zvdvc34/y5Ty8RgrnzIolaJliDrhh3Zh9BapbI9YzVzs2brDWFZ1TdLV7fPfTxLjsk+/NGp/f4U0afwap4qEB+Pbo6lGw1TK+f2vgkjYM2j/IRbY2o0NlO9C4JucnJ5s0hCcgz+y6Fe6HtPwfMnq0djhg3W/fuvXVJ5WSyO6ixwZ16MQqEWLaidm70KDiQHHH5ADFTQUwrgV2pqFN5bte36vsDataiZzgkfArNwPkCljupfOb9qTDMOoqV2Nnx2HnpgHFNUoy9WsMRuqVA27oGt2cdwu9MERn03IMMwrhCLMbnHTl8BT8vgMzww7wlHy7teOQT31mOXszm7DnKCCJC+w9KLCxPb67u8uKVwa5AL1csPi342q+zwy7cQ2c8sN6tLTO45Y8/JTrt72LXl0OW8K3gG//P4qVPpJZMu5ThI32fY/pp+vCj8sm+1C4+aeCnJGuktfmEipgmqgBIlpxM3vWfMzF09wS93xfZHF4+XUXRpIOB9PSl1ynuYsrsobZoKsesDOZ8BH7z2yYx2R8QVFedF4uwJLB/3L6Ht3V43YB3zhDXX9plGT/G1Cb/05dvjSZb/A3+DPGSEQ581018aIHFXkLeiFT9k0eYus8R7s0/TvkDcACDl/HwoO8WbZNasjjTdmOHyBiHp7tbWbdR8WKdBXje3N0qOi+evapDM4oh6c5ovdyYXbyOluH4TIwrBI6BuNpUKhlA8O2Rsivb33rYAp8nqynm9/ipdqpx0z/GY22u8VLrhr/7A9Nym+pH/Sct27g7iTNlRHoQ0wZG44W03fLFUX/Sx9tI86laYcPZPGa6xad9NSc31I1Z8PtP2HDiOMdPAa1jpaelKwfcTIcxupkM3Juo3P4R2mAymz53mHMKYqc8ahgcBB6k64qqOjPk8lem4FXH9yaWUNWtyfVxovMS6n3IyCJG3+wzDbz1wnaTkgalMVlR2/efTFETAJp9r0dgvgWstZY2RgkE6zgBvvEbS8/Obzbtz3kbmQJwRwOLBOmZXmv/kwYq2yXu5BpNhKJtvQeQ1Ho4Wl7V4P9bwYeXJxxHO17OJLd1OmNmRqBpFw53h2rF732EGMAUxBUHJloOQTu3rExvTZ0BM5tx3KyjttY2Njubfu37ijrKwcu+P14J0VLy4svRP3vCz4cXXYHR2M7waZszKpQzyX8EFnZ4c1/GZi1kBHtmVuQfmKvdDTHhUv9qNHK1wK8n/v2z5ySYrc8zKPWhQQ6WFHc1pv0dWmfuqOjftVTe7BJXpHQsPvGfR7yS9P6J25VMMv1l8GuyH6snzAdttcqQOX+3mF3J33OIbqP0odZ8B8qYM59/0EBHyerdOG2X4vL8+TPVr2WbKKIqHQk4vHoXakwwVXSY56y5pRKGhEv1Hk4T+D2vFRQWHdX4UkI+OKOc1xMLmSxsPAfElFmvJfORX/Sv+pzX+mOY7+T+K4/CRO5E/i5P4kTs1P4vT9JM7ET+JAC5wFzgJngbPAWeAscBY4C5wFzgJngbPAWeAscBY4C5wFzgLnf8/5H2iBs8D5mRxbd4f1tmscvLsxAERL2kaAeQnBDyn82K8Pi48IBnbRkTEJ8cFcigOXG82leEYnRAVJ/bjClhsfFhcPXMPCgyku0cFRYdtQP86sCY7iBoNVEQnBcf8NjvcXTnLynzHA3/oPzYP/A/0bMdAB7DMtAAA=</data><length>2564</length><position>2</position><sys_attachment display_value="audio" sys_id="5e36d5bf133bb200d80074c66144b01d">5e36d5bf133bb200d80074c66144b01d</sys_attachment><sys_created_by>amKatulak</sys_created_by><sys_created_on>2017-07-13 13:52:05</sys_created_on><sys_id>5a36d5bf133bb200d80074c66144b01e</sys_id></sys_attachment_doc><sys_attachment action="INSERT_OR_UPDATE"><average_image_color/><compressed>true</compressed><content_type>audio/mp3</content_type><encryption_context/><file_name>Error.mp3</file_name><image_height/><image_width/><size_bytes>11571</size_bytes><size_compressed>4732</size_compressed><sys_created_by>amKatulak</sys_created_by><sys_created_on>2017-07-13 13:55:02</sys_created_on><sys_id>b1e6ddbf133bb200d80074c66144b008</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>amKatulak</sys_updated_by><sys_updated_on>2017-07-13 13:55:02</sys_updated_on><table_name>db_audio</table_name><table_sys_id>252615bf133bb200d80074c66144b0d0</table_sys_id></sys_attachment><sys_attachment_doc action="INSERT_OR_UPDATE"><data>H4sIAAAAAAAAAA==</data><length>16</length><position>0</position><sys_attachment display_value="Error.mp3" sys_id="b1e6ddbf133bb200d80074c66144b008">b1e6ddbf133bb200d80074c66144b008</sys_attachment><sys_created_by>amKatulak</sys_created_by><sys_created_on>2017-07-13 13:55:02</sys_created_on><sys_id>f1e6ddbf133bb200d80074c66144b008</sys_id></sys_attachment_doc><sys_attachment_doc action="INSERT_OR_UPDATE"><data>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</data><length>3736</length><position>1</position><sys_attachment display_value="Error.mp3" sys_id="b1e6ddbf133bb200d80074c66144b008">b1e6ddbf133bb200d80074c66144b008</sys_attachment><sys_created_by>amKatulak</sys_created_by><sys_created_on>2017-07-13 13:55:02</sys_created_on><sys_id>75e6ddbf133bb200d80074c66144b008</sys_id></sys_attachment_doc><sys_attachment_doc action="INSERT_OR_UPDATE"><data>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</data><length>2564</length><position>2</position><sys_attachment display_value="Error.mp3" sys_id="b1e6ddbf133bb200d80074c66144b008">b1e6ddbf133bb200d80074c66144b008</sys_attachment><sys_created_by>amKatulak</sys_created_by><sys_created_on>2017-07-13 13:55:02</sys_created_on><sys_id>f5e6ddbf133bb200d80074c66144b008</sys_id></sys_attachment_doc></record_update>]]></payload><remote_update_set display_value="AMK - Non Visual Alert on Scan">47c208fd138b0380cb92b7a66144b088</remote_update_set><replace_on_upgrade>false</replace_on_upgrade><sys_created_by>rwKeller</sys_created_by><sys_created_on>2017-12-15 16:03:48</sys_created_on><sys_id>4bc208fd138b0380cb92b7a66144b088</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rwKeller</sys_updated_by><sys_updated_on>2017-12-15 16:03:48</sys_updated_on><table/><target_name>Error.mp3</target_name><type>Audio</type><update_domain>global</update_domain><update_set/><view/></sys_update_xml><sys_update_xml><action>INSERT_OR_UPDATE</action><application display_value="Mobile Medical Equipment">3d8922a01378aa00b38973076144b0bc</application><category>customer</category><comments/><name>sys_ui_module_4ec7d1ff133bb200d80074c66144b047</name><payload><![CDATA[<record_update sys_domain="global" table="sys_ui_module"><sys_ui_module action="INSERT_OR_UPDATE"><active>true</active><application display_value="Mobile Medical Equipment">c80baea01378aa00b38973076144b00e</application><filter/><name>Clean</name><order>-9999</order><path>/mme?id=mme-barcode&amp;action=cleaned</path><path_relative_to_root>true</path_relative_to_root><roles/><sys_class_name>sys_ui_module</sys_class_name><sys_created_by>amKatulak</sys_created_by><sys_created_on>2017-07-13 14:00:02</sys_created_on><sys_customer_update>true</sys_customer_update><sys_domain>global</sys_domain><sys_id>4ec7d1ff133bb200d80074c66144b047</sys_id><sys_mod_count>2</sys_mod_count><sys_name>Clean</sys_name><sys_package display_value="Mobile Medical Equipment" source="x_ahho_movable_med">3d8922a01378aa00b38973076144b0bc</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Mobile Medical Equipment">3d8922a01378aa00b38973076144b0bc</sys_scope><sys_update_name>sys_ui_module_4ec7d1ff133bb200d80074c66144b047</sys_update_name><sys_updated_by>amKatulak</sys_updated_by><sys_updated_on>2017-07-13 14:02:42</sys_updated_on><table/><uncancelable>false</uncancelable><view_name/></sys_ui_module></record_update>]]></payload><remote_update_set display_value="AMK - Non Visual Alert on Scan">47c208fd138b0380cb92b7a66144b088</remote_update_set><replace_on_upgrade>false</replace_on_upgrade><sys_created_by>rwKeller</sys_created_by><sys_created_on>2017-12-15 16:03:48</sys_created_on><sys_id>cfc208fd138b0380cb92b7a66144b088</sys_id><sys_mod_count>0</sys_mod_count><sys_updated_by>rwKeller</sys_updated_by><sys_updated_on>2017-12-15 16:03:48</sys_updated_on><table/><target_name>Clean</target_name><type>Module</type><update_domain>global</update_domain><update_set/><view/></sys_update_xml></unload>
