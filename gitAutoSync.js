@@ -64,7 +64,7 @@ function updateFile(TOKEN, fileName, content, sha) {
     var body, getHttpReponse, message;
     try {
         body = {
-            "message": fileName + " being updates/created.",
+            "message": fileName + " being updated/created.",
             "committer": {
                 "name": FULL,
                 "email": EMAIL
