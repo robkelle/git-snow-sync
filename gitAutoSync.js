@@ -6,13 +6,16 @@
     VERSION: 0.0.1
 */
 
-// CONSTANTS
+// GITHUB CONFIG
+const GIT_USER_NAME = 'robkelle';
+const GIT_REPO_NAME = 'git-snow-sync';
+const GIT_PATH_NAME = 'log';
 const TOKEN = '7386325e1cf75825b8d75d405ae4c5f140df908f';
-const URI = 'https://api.github.com/repos/robkelle/git-snow-sync/contents/log/';
+const URI = 'https://api.github.com/repos/' + GIT_USER_NAME + '/' + GIT_REPO_NAME + '/contents/' + GIT_PATH_NAME + '/';
 const FULL = 'Rob Keller'; // FULL NAME
 const EMAIL = 'Rob.Keller@gmail.com'; // EMAIL
 
-// GLOBAL VARIABLES
+// DECLARING GLOBAL VARIABLES
 var sysidRetrieved, sysidLocal, grUpdateSet, grRetrievedUpdateSet, grScope, grUpdateXML, fileName, updateSetIds;
 
 function uploadUpdateSetToGithub(sysidRetrieved, fileName) {
@@ -39,6 +42,7 @@ function buildUpdateSetXML(sysidRetrieved) {
     return updateSetXml;
 }
 
+// CONVERTS THE RECORD PROPERTIES FROM AN OBJECT INTO XML
 function getXML(record) {
     var xmlSerializer, xml;
     xmlSerializer = new GlideRecordXMLSerializer();
@@ -46,6 +50,7 @@ function getXML(record) {
     return xml;
 }
 
+// LOOPS THROUGH THE UPDATE SETS AND RETURNS AN ARRAY OF SYS_IDS THAT ARE STILL IN PROGRESS
 function getSetRecords() {
     var setRecord, inProgressSets;
     setRecord = new GlideRecord('sys_update_set');
@@ -56,10 +61,10 @@ function getSetRecords() {
     while (setRecord.next()) {
         inProgressSets.push(setRecord.sys_id.toString());
     }
-
     return inProgressSets;
 }
 
+// CREATES NET NEW OR UPDATES EXISTING UPDATE SETS
 function updateFile(TOKEN, fileName, content, sha) {
     var body, getHttpReponse, message;
     try {
@@ -100,11 +105,12 @@ function getChildUpdates(parentSet) {
     return updatesXML;
 }
 
-// MAIN
+// MAIN PROGRAM
 updateSetIds = getSetRecords();
 for (updateSetId in updateSetIds) {
     sysidLocal = updateSetIds[updateSetId];
     grUpdateSet = new GlideRecord('sys_update_set');
+
     if (grUpdateSet.get(sysidLocal)) {
         grRetrievedUpdateSet = new GlideRecord('sys_remote_update_set');
         grRetrievedUpdateSet.initialize();
