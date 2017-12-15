@@ -7,8 +7,8 @@
 */
 
 // CONSTANTS
-const TOKEN = 'c9bd904e810b39c4880353f826aae93f7892d750';
-const URI = 'https://api.github.com/repos/robkelle/snow-update-set-sync/contents/';
+const TOKEN = '7386325e1cf75825b8d75d405ae4c5f140df908f';
+const URI = 'https://api.github.com/repos/robkelle/git-snow-sync/contents/log/';
 const FULL = 'Rob Keller'; // FULL NAME
 const EMAIL = 'Rob.Keller@gmail.com'; // EMAIL
 
