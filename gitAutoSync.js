@@ -64,7 +64,7 @@ function updateFile(TOKEN, fileName, content, sha) {
     var body, getHttpReponse, message;
     try {
         body = {
-            "message": "Syncing snow-update-set-sync...",
+            "message": fileName + " being updates/created.",
             "committer": {
                 "name": FULL,
                 "email": EMAIL
@@ -134,7 +134,7 @@ for (updateSetId in updateSetIds) {
                 grUpdateXML.insert();
             }
 
-            fileName = ((grUpdateSet.getValue('name') + '.xml').replace(/\s+/g,'_'));
+            fileName = ((grUpdateSet.getValue('name') + '.xml').replace(/\s+/g, '_'));
             uploadUpdateSetToGithub(sysidRetrieved, fileName);
             grUpdateXML = new GlideRecord('sys_update_xml');
             grUpdateXML.addQuery('remote_update_set', sysidRetrieved);
