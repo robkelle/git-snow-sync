@@ -12,7 +12,7 @@ const GIT_REPO_NAME = 'git-snow-sync';
 const GIT_PATH_NAME = 'log';
 const TOKEN = '7386325e1cf75825b8d75d405ae4c5f140df908f';
 const URI = 'https://api.github.com/repos/' + GIT_USER_NAME + '/' + GIT_REPO_NAME + '/contents/' + GIT_PATH_NAME + '/';
-const FULL = 'Rob Keller'; // FULL NAME
+const FULL = 'ServiceNow Sync';
 const EMAIL = 'Rob.Keller@gmail.com'; // EMAIL
 
 // DECLARING GLOBAL VARIABLES
