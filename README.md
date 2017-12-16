@@ -1,16 +1,18 @@
 # Github ServiceNow Sync
 
-Optimize your ServiceNow experience by using git-sync a tool that enabled you to run scheduled backups of your in progress Update Sets.
+Optimize your ServiceNow experience by using git-sync a tool that enables you to run scheduled backups of your "in progress" Update Sets.
 This tool creates a scheduled job and UI Action button displayed in your update set table. The only thing required is that you configure your Github information.
+A detailed setup is provided below under the deployment section.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your ServiceNow instance. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your own ServiceNow instance.
+See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
 ```
-ServiceNow
+ServiceNow Istanbul or above
 Github Account
 ```
 
