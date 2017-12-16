@@ -1,6 +1,4 @@
-# git-snow-sync
-
-# Project Title
+# Github ServiceNow Sync
 
 Optimize your ServiceNow experience by using git-sync a tool that enabled you to run scheduled backups of your in progress Update Sets.
 This tool creates a scheduled job and UI Action button displayed in your update set table. The only thing required is that you configure your Github information.
@@ -38,14 +36,13 @@ End with an example of getting some data out of the system or using it for a lit
 
 Add additional notes about how to deploy this on a live system
 
-
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
 
 ## Authors
 
-* **Rob Keller** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Rob Keller** - *Initial work* - [Profile](https://github.com/robkelle)
 
 See also the list of [contributors](https://github.com/robkelle/git-snow-sync/graphs/contributors) who participated in this project.
 
