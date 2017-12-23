@@ -13,26 +13,28 @@ See deployment for notes on how to deploy the project on a live system.
 
 ```
 ServiceNow Istanbul or above
-Github Account
+Github
 ```
 
 ### Installing
 
-A step by step series of examples that tell you have to get a development env running
+A step by step series of examples that tell you how to get a development environment up and running
 
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
+Upload update set:
 
 ```
-until finished
+Import XML GITSYNC.xml into the sys_update_set table
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+Modify script include to add your personal or team specific github information
+
+```
+const GIT_USER_NAME = ''; // Github username
+const GIT_REPO_NAME = ''; // Github repository name
+const GIT_PATH_NAME = ''; // Directory name where recovered in progress update sets will be back up into
+const TOKEN = ''; // Github bearer token, this needs to be generated on the github side of things [Documentation](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)
+const EMAIL = ''; // Github email
+```
 
 ## Deployment
 
