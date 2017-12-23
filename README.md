@@ -26,13 +26,12 @@ A step by step series of examples that tell you how to get a development environ
 Import XML GITSYNC.xml into the sys_update_set table
 ```
 
-2.) Modify script include to add your personal or team specific github information 
-The following is going to change:
-Github username
-Github repository name
-Directory name where recovered in progress update sets will be back up into
-Github bearer token, this needs to be generated on the github side of things [Read More](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)
-Github email
+2.) Modify script include to add your personal or team specific github information. The following is going to change: 
+Github username,
+Github repository name,
+directory name where recovered update sets will be backed up,
+Github bearer token (this needs to be generated in Github [Read More](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)),
+Github email.
 
 ```
 Code Sample:
