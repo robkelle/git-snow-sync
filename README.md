@@ -34,7 +34,6 @@ Github bearer token (this needs to be generated in Github [Read More](https://he
 Github email.
 
 ```
-Code Sample:
 const GIT_USER_NAME = 'TestUser';
 const GIT_REPO_NAME = 'git-snow-sync';
 const GIT_PATH_NAME = 'log';
@@ -43,10 +42,6 @@ const URI = 'https://api.github.com/repos/' + GIT_USER_NAME + '/' + GIT_REPO_NAM
 const FULL = 'ServiceNow sync';
 const EMAIL = 'TestUser@gmail.com';
 ```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
 
 ## Versioning
 
