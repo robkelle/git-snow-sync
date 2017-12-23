@@ -20,20 +20,29 @@ Github
 
 A step by step series of examples that tell you how to get a development environment up and running
 
-Upload update set:
+1.) Upload update set:
 
 ```
 Import XML GITSYNC.xml into the sys_update_set table
 ```
 
-Modify script include to add your personal or team specific github information
+2.) Modify script include to add your personal or team specific github information 
+The following is going to change:
+Github username
+Github repository name
+Directory name where recovered in progress update sets will be back up into
+Github bearer token, this needs to be generated on the github side of things [Read More](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)
+Github email
 
 ```
-const GIT_USER_NAME = ''; // Github username
-const GIT_REPO_NAME = ''; // Github repository name
-const GIT_PATH_NAME = ''; // Directory name where recovered in progress update sets will be back up into
-const TOKEN = ''; // Github bearer token, this needs to be generated on the github side of things [Documentation](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)
-const EMAIL = ''; // Github email
+Code Sample:
+const GIT_USER_NAME = 'TestUser';
+const GIT_REPO_NAME = 'git-snow-sync';
+const GIT_PATH_NAME = 'log';
+const TOKEN = '';
+const URI = 'https://api.github.com/repos/' + GIT_USER_NAME + '/' + GIT_REPO_NAME + '/contents/' + GIT_PATH_NAME + '/';
+const FULL = 'ServiceNow sync';
+const EMAIL = 'TestUser@gmail.com';
 ```
 
 ## Deployment
@@ -42,7 +51,7 @@ Add additional notes about how to deploy this on a live system
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
+We use [Semantic Versioning](http://semver.org/) for versioning.
 
 ## Authors
 
