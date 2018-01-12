@@ -46,10 +46,6 @@ const EMAIL = 'TestUser@gmail.com';
 3.) Modify gitAutoSync.js same constant values mentioned above and then copy paste script to a scheduled job.
 Schedule how frequent you want these files backed up and you should be finished configuring your Github Sync tool in ServiceNow!
 
-## Versioning
-
-We use [Semantic Versioning](http://semver.org/) for versioning.
-
 ## Authors
 
 * **Rob Keller** - *Initial work* - [Profile](https://github.com/robkelle)
@@ -59,7 +55,3 @@ See also the list of [contributors](https://github.com/robkelle/git-snow-sync/gr
 ## License
 
 This project is licensed under the free License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* CloudPires LLC
