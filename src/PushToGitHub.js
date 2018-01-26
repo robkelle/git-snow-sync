@@ -3,7 +3,7 @@
 
 /*
     DESCRIPTION:
-    VERSION: 0.0.3
+    VERSION: 0.0.2
 */
 
 var date = {
@@ -67,7 +67,7 @@ BackupUpdateSets.prototype = {
     getSetRecords: function () {
         var setRecord, inProgressSets;
         setRecord = new GlideRecord('sys_update_set');
-        setRecord.addEncodedQuery('state=in progress^name!=Default^NQsys_updated_on>javascript:gs.endOfLastMonth()');
+        setRecord.addEncodedQuery('nameNOT LIKEDefault^state=in progress');
         setRecord.query();
         inProgressSets = [];
 

@@ -2,7 +2,7 @@
 // DATE: 01/12/2018
 
 /*
-    DESCRIPTION: Syncs with Github repository and automatically imports update sets
+    DESCRIPTION: Syncs with Github repo and automatically imports update sets
     VERSION: 0.0.2
 */
 
@@ -13,7 +13,7 @@ const TOKEN = '';
 const FOLDER_NAME = '';
 const URI = 'https://api.github.com/repos/' + GIT_USER_NAME + '/' + GIT_REPO_NAME + '/contents/' + FOLDER_NAME + '/';
 const DEBUGGER = true; // Set to false to turn off debugging
-const INSERT_SWITCH = false; // Set to true to turn on script functionality
+const INSERT_SWITCH = true; // Set to true to turn on script functionality
 
 // FUNCTIONS
 function logMessage(message) {
@@ -200,6 +200,23 @@ try {
             i++;
             rowCountTotal++;
             rowCountPerUpdateSet++;
+        }
+
+        // Section that previews loaded update sets
+        var remoteUpdateSet = new GlideRecord('sys_remote_update_set');
+        remoteUpdateSet.addEncodedQuery('sys_class_name=sys_remote_update_set^description=' + guid);
+        remoteUpdateSet.query();
+
+        if (INSERT_SWITCH) {
+            while (remoteUpdateSet.next()) {
+                var worker = new GlideScriptedProgressWorker();
+                worker.setName('UpdateSetPreviewer');
+                worker.addParameter(remoteUpdateSet.sys_id.toString());
+                worker.addParameter("preview");
+                worker.setBackground(true);
+                answer = worker.getProgressID(); // Set answer to the progress worker ID BEFORE worker starts
+                worker.start();
+            }
         }
     }
 } catch (err) {
