@@ -20,12 +20,12 @@ Github (Private repository recommended)
 
 A step by step series of examples that tell you how to get a development environment up and running
 
-1.) Modify PullFromGitHub.js and PushToGitHub to add your personal or team specific github information. The following is going to change:
+1.) Modify PullFromGitHub.js and PushToGitHub.js to add your personal or team specific github information. The following is going to change:
 Github username,
 Github repository name,
 directory name where recovered update sets will be backed up,
 Github bearer token (this needs to be generated in Github [Read More](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)),
-Github email. Example code that needs to be changed is provided below, which is also located in gitAutoSync.js.
+Github email. Example code that needs to be changed is provided below, which is also located in both JavaScript files.
 
 ```
 const GIT_USER_NAME = 'TestUser';
