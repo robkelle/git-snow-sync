@@ -16,17 +16,11 @@ ServiceNow Instance (Istanbul or above)
 Github (Private repository recommended)
 ```
 
-### Installing
+### Setup
 
 A step by step series of examples that tell you how to get a development environment up and running
 
-1.) Upload update set:
-
-```
-Import XML GITSYNC_UISCRIPT_v0.0.1.xml into the sys_update_set table
-```
-
-2.) Modify UI Action "Github Sync" to add your personal or team specific github information. The following is going to change:
+1.) Modify PullFromGitHub.js and PushToGitHub to add your personal or team specific github information. The following is going to change:
 Github username,
 Github repository name,
 directory name where recovered update sets will be backed up,
@@ -43,8 +37,7 @@ const FULL = 'ServiceNow sync';
 const EMAIL = 'TestUser@gmail.com';
 ```
 
-3.) Modify gitAutoSync.js same constant values mentioned above and then copy paste script to a scheduled job.
-Schedule how frequent you want these files backed up and you should be finished configuring your Github Sync tool in ServiceNow!
+2.) More informationn to come once development of script is completed...
 
 ## Authors
 
