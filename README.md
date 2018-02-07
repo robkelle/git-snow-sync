@@ -1,7 +1,7 @@
 # Github ServiceNow Sync
 
 Optimize your ServiceNow experience by using git-sync a tool that enables you to run scheduled backups of your in progress update sets.
-This tool creates a scheduled job and UI Action button displayed in your update set table. The only thing required is that you configure your Github information.
+This tool runs as a scheduled job. The only requirement is that you create a new scheduled job and add your Github information.
 A detailed setup is provided below under the deployment section.
 
 ## Getting Started
@@ -37,7 +37,7 @@ const FULL = 'ServiceNow sync';
 const EMAIL = 'TestUser@gmail.com';
 ```
 
-2.) More informationn to come once development of script is completed...
+2.) More informationn to come once full development of scripts are completed...
 
 ## Authors
 
